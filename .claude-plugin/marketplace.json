@@ -1,0 +1,8 @@
+{
+  "name": "context-meter",
+  "description": "A display-only Claude Code mod: one line above the prompt showing context usage and the five-hour and weekly limits",
+  "owner": { "name": "jamessteincamp" },
+  "plugins": [
+    { "name": "context-meter", "source": "./", "description": "Display-only context and limit meter above the prompt" }
+  ]
+}
