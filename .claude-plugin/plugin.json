@@ -1,6 +1,8 @@
 {
   "name": "context-meter",
-  "version": "0.1.0",
-  "description": "Display-only line above the prompt: how full this chat is, and how much of the 5-hour and weekly limits is used",
+  "version": "1.0.0",
+  "description": "Display-only line above the prompt: how full this chat is, and how much of the five-hour and weekly limits is used",
+  "author": { "name": "jamessteincamp" },
+  "homepage": "https://github.com/jamessteincamp/context-meter",
   "types": "./types/index.d.ts"
 }
