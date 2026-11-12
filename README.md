@@ -6,6 +6,10 @@ One dim line above the prompt: how full this chat is (“Chat 42% full (84K of 2
 
 Display only. It hooks no prompt, tool or message event, so it never holds, intercepts or changes anything you send. It reads numbers the session already has and stores nothing across sessions.
 
+## Requirements
+
+Built and tested on Claude Code 2.1.321. Mods use Claude Code’s hooks-module API, which is marked early access and may change between releases; older versions may not load the mod. Check yours with `claude --version` and update with `claude update`.
+
 ## Install
 
 At the prompt of a Claude Code terminal session:
@@ -30,6 +34,14 @@ In the desktop app, where `/plugin` does not run: click + next to the prompt box
 claude plugin uninstall context-meter@context-meter
 claude plugin marketplace remove context-meter
 ```
+
+## Tests
+
+```
+claude plugin test .
+```
+
+From the repository folder. The tests check the line’s wording and labels, each colour band at its edges, that the line hides behind a survey, and that a prompt and a tool call pass through unchanged.
 
 ## Credit
 
