@@ -17,21 +17,30 @@ function toReading(context: SessionContextUsage, limits: readonly SessionRateLim
   }
 }
 
+// 84K, 1.2M, 1M. The K branch stops where rounding would reach 1000K; both
+// branches round half up (toFixed would turn 1.95M into 1.9M).
 function size(n: number) {
   if (n < 1000) return String(n)
-  if (n < 1_000_000) return `${Math.round(n / 1000)}K`
+  if (n < 999_500) return `${Math.round(n / 1000)}K`
 
-  return `${(n / 1_000_000).toFixed(1)}M`
+  return `${Math.round(n / 100_000) / 10}M`
 }
 
-// The colour of a percentage figure: green under 30, orange under 50, red
-// under 80, red and bold from 80 up. Green and red are theme keys, so they
-// follow light and dark mode; the theme has no orange, so that one is hex.
-const ORANGE = '#E8811C'
+// The engine sends `percent` with `tokens`, already whole. The fallback covers
+// a release that sends `tokens` alone.
+function chatPercent(meter: Reading): number | undefined {
+  if (meter.percent !== undefined) return meter.percent
+  if (meter.tokens === undefined || meter.window <= 0) return undefined
 
+  return Math.round((meter.tokens / meter.window) * 100)
+}
+
+// The colour of a percentage figure: green under 30, amber under 50, red
+// under 80, red and bold from 80 up. All three are theme keys (amber is the
+// theme's `warning`), so they follow light, dark and custom themes.
 function figureStyle(percent: number): { color: string; bold: boolean } {
   if (percent < 30) return { color: 'success', bold: false }
-  if (percent < 50) return { color: ORANGE, bold: false }
+  if (percent < 50) return { color: 'warning', bold: false }
   if (percent < 80) return { color: 'error', bold: false }
 
   return { color: 'error', bold: true }
@@ -55,17 +64,17 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    const beneath = await next(e)
-    if (e.props.hasSurvey) return beneath
+    // This hook hears only this mod's own row, so passing means drawing nothing.
+    if (e.props.hasSurvey) return next(e)
 
     const meter = await read($, reading)
-    if (meter === null) return beneath
+    if (meter === null) return next(e)
 
-    const { Box, Text } = $.ui.resolve(e)
+    const { Text } = $.ui.resolve(e)
     const parts = []
 
-    if (meter.tokens !== undefined) {
-      const percent = meter.percent ?? Math.round((meter.tokens / meter.window) * 100)
+    const percent = chatPercent(meter)
+    if (meter.tokens !== undefined && percent !== undefined) {
       parts.push(
         <Text>
           <Text dimColor>Chat </Text>
@@ -87,15 +96,12 @@ export const register: Register = on => {
         </Text>,
       )
     }
-    if (parts.length === 0) return beneath
+    if (parts.length === 0) return next(e)
 
     return (
-      <Box flexDirection="column">
-        {beneath}
-        <Text wrap="truncate-end">
-          {parts.flatMap((part, i) => (i === 0 ? [part] : [<Text dimColor> · </Text>, part]))}
-        </Text>
-      </Box>
+      <Text wrap="truncate-end">
+        {parts.flatMap((part, i) => (i === 0 ? [part] : [<Text dimColor> · </Text>, part]))}
+      </Text>
     )
   })
 }
