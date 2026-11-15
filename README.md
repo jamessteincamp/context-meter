@@ -1,6 +1,6 @@
 # Context Meter
 
-One dim line above the prompt: how full this chat is (“Chat 42% full (84K of 200K)”) and how much of the five-hour and weekly limits is used (“Five-hour 37% · Week 12%”). Each percentage is coloured by level: green below 30%, orange from 30%, red from 50%, red and bold from 80%.
+One dim line above the prompt: how full this chat is (“Chat 42% full (84K of 200K)”) and how much of the five-hour and weekly limits is used (“Five-hour 37% · Week 12%”). Each percentage is coloured by level: green below 30%, amber from 30%, red from 50%, red and bold from 80%.
 
 Display only. It hooks no prompt, tool or message event, so it never holds, intercepts or changes anything you send. It reads numbers the session already has and stores nothing across sessions.
 

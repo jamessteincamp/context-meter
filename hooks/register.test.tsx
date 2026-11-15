@@ -95,6 +95,8 @@ const SIZES: [Context, string][] = [
   [{ tokens: 999_499, window: 1_000_000, percent: 100 }, 'Chat 100% full (999K of 1M)'],
   [{ tokens: 999_600, window: 1_000_000, percent: 100 }, 'Chat 100% full (1M of 1M)'],
   [{ tokens: 1_240_000, window: 2_000_000, percent: 62 }, 'Chat 62% full (1.2M of 2M)'],
+  [{ tokens: 1_150_000, window: 2_000_000, percent: 58 }, 'Chat 58% full (1.2M of 2M)'],
+  [{ tokens: 1_950_000, window: 2_000_000, percent: 98 }, 'Chat 98% full (2M of 2M)'],
 ]
 
 for (const [context, expected] of SIZES) {
@@ -109,7 +111,28 @@ for (const [context, expected] of SIZES) {
   })
 }
 
-// The colour bands: green below 30, orange (the theme's `warning`) from 30,
+test('with tokens but no percent, the percent is worked out from the window', async ($, on) => {
+  stubEngine(on)
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  await $.session.measure(measure({ tokens: 84_000, window: 200_000 }))
+
+  const ui = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  expect((await ui.find({ type: 'Text', text: /^Chat/ }))?.text).toBe('Chat 42% full (84K of 200K)')
+  await ui.unmount()
+})
+
+test('with tokens, no percent and no window, the chat part is left out', async ($, on) => {
+  stubEngine(on)
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  await $.session.measure(measure({ tokens: 5_000, window: 0 }, [{ kind: 'five_hour', percentUsed: 10 }]))
+
+  const ui = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  expect(await ui.find({ type: 'Text', text: /Chat/ }), 'no NaN% or Infinity%').toBeUndefined()
+  expect((await ui.find({ type: 'Text', text: /^Five-hour/ }))?.text).toBe('Five-hour 10%')
+  await ui.unmount()
+})
+
+// The colour bands: green below 30, amber (the theme's `warning`) from 30,
 // red from 50, red and bold from 80.
 const BANDS: [number, string, boolean][] = [
   [0, 'success', false],
